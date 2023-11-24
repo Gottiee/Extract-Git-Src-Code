@@ -4,16 +4,18 @@ import argparse, os, requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from urllib.parse import urlparse, urlunparse
+from pathlib import Path
 
 def create_directory(directory_path):
     try:
         os.makedirs(directory_path)
         if os.path.exists(directory_path) and os.path.isdir(directory_path):
-            print(f"Directory '{directory_path}' created successfully.")
+            pass
+            # print(f"Directory '{directory_path}' created successfully.")
         else:
             raise OSError(f"Failed to create directory '{directory_path}'.")
     except OSError as e:
-        raise OSError(f"Error creating directory '{directory_path}': {e}")
+        print(f"Error creating directory '{directory_path}': {e}")
 
 def create_file(file_path, content=None):
     try:
@@ -21,17 +23,18 @@ def create_file(file_path, content=None):
             if content is not None:
                 file.write(content)
         if os.path.exists(file_path) and os.path.isfile(file_path):
-            print(f"File '{file_path}' created successfully.")
+            pass
+            # print(f"File '{file_path}' created successfully.")
         else:
             raise OSError(f"Failed to create file '{file_path}'.")
     except OSError as e:
-        raise OSError(f"Error creating file '{file_path}': {e}")
+        print(f"Error creating file '{file_path}': {e}")
 
 def argument():
     parser  = argparse.ArgumentParser(description="Extract git src code, extract /.git from a given URL and try to recompose the src code")
     parser.add_argument("-u", "--url", help="path/to/git/folder/.git", required=True)
     parser.add_argument('-b', '--blind', action='store_true', help="No directory listing")
-    parser.add_argument('-o', '--output', help='Name of extract folder')
+    parser.add_argument('-o', '--output', help='Name of extract .git folder (default=\'git\')', default='git')
     return parser.parse_args()
 
 def add_git_path(url: str):
@@ -44,11 +47,15 @@ def add_git_path(url: str):
         return modified_url
     return url
 
-def dowload_git_folder(url):
+def dowload_git_folder(url:str, depth=1):
     try:
         response = requests.get(url)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
+        links = soup.find_all('a', href=True) 
+        for link in links:
+            if link['href'].endswith('/') : 
+                create_directory
 
     except requests.exceptions.RequestException as e:
         print(f"Error dowloading {url}: {e}")
@@ -56,6 +63,9 @@ def dowload_git_folder(url):
 def main():
     args = argument()
     url = add_git_path(args.url)
+    create_directory(args.output)
+    base = Path(args.output)
+    create_directory(str(base / ".git"))
     if not args.blind:
         dowload_git_folder(url)
 
