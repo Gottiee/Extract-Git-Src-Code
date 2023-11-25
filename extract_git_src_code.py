@@ -34,6 +34,7 @@ def argument():
     parser.add_argument("-u", "--url", help="path/to/git/folder/.git", required=True)
     parser.add_argument('-b', '--blind', action='store_true', help="No directory listing")
     parser.add_argument('-o', '--output', help='Name of extract .git folder (default=\'git\')', default='git')
+    parser.add_argument('-v', '--verbose', help='Print additional informations', action='store_true', default=False)
     return parser.parse_args()
 
 def add_git_path(url: str):
@@ -51,9 +52,9 @@ def dowload_file(url):
     if response.status_code == 200:
         return response.content
     else:
-        print(f"Error dowloading {url}: {e}")
+        print(f"Error dowloading {url}")
 
-def dowload_git_folder(url:str, path: Path, depth=1):
+def dowload_git_folder(url:str, path: Path, verbose):
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -68,10 +69,11 @@ def dowload_git_folder(url:str, path: Path, depth=1):
                 dir = dir[:-1]
                 new_path = path / dir
                 create_directory(str(new_path))
-                dowload_git_folder(new_url, new_path)
+                dowload_git_folder(new_url, new_path, verbose)
             else:
                 file_path = path / dir
-                print(f"Dowloading: {str(file_path)}")
+                if verbose:
+                    print(f"Dowloading: {str(file_path)}")
                 create_file(str(file_path), dowload_file(url + dir))
 
     except requests.exceptions.RequestException as e:
@@ -85,7 +87,7 @@ def main():
     path = base / ".git"
     create_directory(str(path))
     if not args.blind:
-        dowload_git_folder(url, path)
+        dowload_git_folder(url, path, args.verbose)
 
 if __name__ == "__main__":
     main()
