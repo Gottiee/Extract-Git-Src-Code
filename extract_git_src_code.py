@@ -67,8 +67,9 @@ def dowload_git_folder(url:str, path: Path, verbose):
         links = soup.find_all('a', href=True) 
         for link in links:
             dir = link['href']
-            if dir == "../":
+            if dir == "../" or dir == "/" or dir.startswith("?") or link.string.lower() == "parent directory":
                 continue
+            
             if dir.endswith('/'): 
                 new_url = url + dir
                 dir = dir[:-1]
