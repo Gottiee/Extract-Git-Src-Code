@@ -1,6 +1,6 @@
 # Extract-Git-Src-Code
 
-Extract Git Source code is a tool which download the .git folder of a given URL and recompose the source code.
+Extract Git Source code is a tool which download the .git folder from a given URL and recompose the source code.
 
 :warning: Directory listing should be activated
 
