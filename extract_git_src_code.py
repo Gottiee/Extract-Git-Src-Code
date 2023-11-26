@@ -127,8 +127,7 @@ def main():
         url = add_git_path(args.url)
         create_directory(args.output)
         create_directory(str(path))
-        if not args.blind:
-            dowload_git_folder(url, path, args.verbose)
+        dowload_git_folder(url, path, args.verbose)
         print(f"Download done\n")
     if not args.onlyDownload:
         print(f"Extract source code...")
