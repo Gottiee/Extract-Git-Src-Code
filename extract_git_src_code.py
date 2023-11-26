@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
-import argparse, os, requests
+import argparse, os, requests, git, shutil
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urlunparse, urljoin
 from pathlib import Path
+
+def print_v(str, verbose):
+    if verbose:
+        print(str)
 
 def create_directory(directory_path):
     try:
@@ -74,8 +78,7 @@ def dowload_git_folder(url:str, path: Path, verbose):
                 dowload_git_folder(new_url, new_path, verbose)
             else:
                 file_path = path / dir
-                if verbose:
-                    print(f"Dowloading: {str(file_path)}")
+                print_v(f"\tDowloading: {str(file_path)}", verbose)
                 create_file(str(file_path), dowload_file(url + dir))
     except requests.exceptions.RequestException as e:
         print(f"Error dowloading {url}: {e}")
@@ -88,7 +91,7 @@ def open_read(path: str):
         print(f"File error at {str(path)} : {e}")
         return None
 
-def get_src_code(path: Path):
+def get_src_code(path: Path, verbose, base: Path):
     head_path = path / "HEAD"
     content = open_read(str(head_path))
     if content == None:
@@ -98,8 +101,8 @@ def get_src_code(path: Path):
         content = content[:-1]
     if content.startswith("ref: "):
         head = content.split("ref: ", 1)[1]
-        path = path / head
-        git_head = open_read(str(path))
+        new_path = path / head
+        git_head = open_read(str(new_path))
         if git_head == None:
             print(f"End of the program")
             return
@@ -107,21 +110,32 @@ def get_src_code(path: Path):
             git_head = git_head[:-1]
     else:
         git_head = content
-    print(git_head)
-
+    print_v(f"\tGit HEAD: {git_head}", verbose)
+    repo = git.Repo(str(path))
+    repo.git.archive("--format", "zip", "--output", "source.zip", git_head)
+    extract_path = base / "src_code"
+    base = base / "source.zip"
+    shutil.unpack_archive(str(base), str(extract_path))
+    print_v(f"\tSource code extracted at {str(extract_path)}", verbose)
+    os.system(f"rm -f {str(base)}")
 
 def main():
     args = argument()
     base = Path(args.output)
     path = base / ".git"
     if not args.onlyExtract:
+        print(f"Downloading...")
         url = add_git_path(args.url)
         create_directory(args.output)
         create_directory(str(path))
         if not args.blind:
             dowload_git_folder(url, path, args.verbose)
+        print(f"Download done\n")
     if not args.onlyDownload:
-        get_src_code(path)
+        print(f"Extract source code...")
+        get_src_code(path, args.verbose, base)
+        src = base / "src_code"
+    print(f"Source code extracted")
 
 if __name__ == "__main__":
     main()
