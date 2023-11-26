@@ -37,7 +37,6 @@ def argument():
     parser  = argparse.ArgumentParser(description="Extract git src code, extract /.git from a given URL and try to recompose the src code")
     parser.add_argument("-u", "--url", help="https://url.net/path/to/git/folder/.git", required=True)
     parser.add_argument('-o', '--output', help='Name of extract .git folder (default=\'git\')', default='git')
-    parser.add_argument('-b', '--blind', action='store_true', help="No directory listing")
     parser.add_argument('-v', '--verbose', help='Print additional informations', action='store_true', default=False)
     parser.add_argument('--onlyDownload',action='store_true', help="Do not extract source code, only '.git' directory", default=False)
     parser.add_argument('--onlyExtract',action='store_true', help="Do not download '.git' directory and assume it already exist to perform the soure code extraction", default=False)
@@ -135,7 +134,7 @@ def main():
         print(f"Extract source code...")
         get_src_code(path, args.verbose, base)
         src = base / "src_code"
-    print(f"Source code extracted")
+        print(f"Source code extracted")
 
 if __name__ == "__main__":
     main()
